@@ -5,7 +5,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { UsersModule } from "./users/users.module";
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from "./auth/auth.module";
 
 import config from "./config/configuration";
 
@@ -19,7 +19,7 @@ import config from "./config/configuration";
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
-        uri: config.get<string>("dbUri"),
+        uri: config.getOrThrow<string>("dbUri"),
       }),
       inject: [ConfigService],
     }),
