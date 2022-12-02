@@ -4,24 +4,25 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { UsersModule } from "./users/users.module";
 
 import config from "./config/configuration";
 
 @Module({
   imports: [
+    // .env
     ConfigModule.forRoot({
       load: [config],
     }),
+    // MongoDB
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      connectionName: "db",
       useFactory: async (config: ConfigService) => ({
         uri: config.get<string>("dbUri"),
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
       }),
       inject: [ConfigService],
     }),
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
