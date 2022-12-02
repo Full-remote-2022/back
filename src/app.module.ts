@@ -8,6 +8,7 @@ import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
 
 import config from "./config/configuration";
+import { SwaggerModule } from "@nestjs/swagger";
 
 @Module({
   imports: [
