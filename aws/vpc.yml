@@ -1,0 +1,156 @@
+Parameters:
+  LatestLinuxImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  BaseName:
+    Type: String
+    Default: 'FULLREMOTE'
+    Description: 'Base name for all resources'
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: 'Name of an existing EC2 KeyPair to enable SSH access to the instances'
+
+Resources:
+  Vpc:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: !Sub ${BaseName}_VPC
+
+  Gateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${BaseName}_GATEWAY
+
+  GatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      InternetGatewayId: !Ref Gateway
+      VpcId: !Ref Vpc
+
+  RouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${BaseName}_ROUTE_TABLE
+
+  Route:
+    Type: 'AWS::EC2::Route'
+    DependsOn: Gateway
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref Gateway
+
+  Subnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${BaseName}_SUBNET_1
+
+  SubnetRouteTableAttachment:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref Subnet
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref Vpc
+      GroupDescription: allow connections from specified source security group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      SubnetId: !Ref Subnet
+      ImageId: !Ref LatestLinuxImageId
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      KeyName: !Ref KeyName
+      UserData: !Base64 |
+        #!/bin/bash -xe
+
+        LOG_FILE=/home/ec2-user/userdata.log
+
+        echo "Starting user data script" > $LOG_FILE
+
+        yum -y update
+        echo "Yum update completed" >> $LOG_FILE
+
+        yum -y install docker
+        echo "Yum install docker completed" >> $LOG_FILE
+
+        curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        echo "Install docker-compose completed" >> $LOG_FILE
+
+        usermod -a -G docker ec2-user
+        echo "Added ec2-user to docker group" >> $LOG_FILE
+
+        systemctl enable --now docker
+        echo "Docker service enabled and started" >> $LOG_FILE
+
+        curl -L https://github.com/Full-remote-2022/back/blob/main/docker-compose.yaml -o /home/ec2-user/docker-compose.yaml
+        echo "Downloaded docker-compose.yaml" >> $LOG_FILE
+
+        DB_ROOT_PWD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '')
+        DB_APP_PWD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '')
+        JWT_TOKEN=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '')
+
+        tee /home/ec2-user/.env <<EOF
+        MONGO_APP_USER=fullremote
+        MONGO_APP_PWD=$DB_APP_PWD
+
+        MONGO_ROOT_USER=root
+        MONGO_ROOT_PWD=$DB_ROOT_PWD
+
+        APP_JWT_SECRET=$JWT_TOKEN
+        EOF
+
+        docker-compose up -f /home/ec2-user/docker-compose.yml
+
+Outputs:
+  VpcId:
+    Value: !Ref Vpc
+    Description: VPC ID
+
+  AZ:
+    Value: !GetAtt
+      - Subnet
+      - AvailabilityZone
+    Description: Subnet AZ
+
+  SubnetId:
+    Value: !Ref Subnet
+    Description: Subnet ID
+
+  PublicIp:
+    Value: !GetAtt Instance.PublicIp
+    Description: Instance Public Ip
