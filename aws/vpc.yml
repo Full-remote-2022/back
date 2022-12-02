@@ -118,6 +118,7 @@ Resources:
         echo "Docker service enabled and started" >> $LOG_FILE
 
         curl -L https://raw.githubusercontent.com/Full-remote-2022/back/main/docker-compose.yaml -o /home/ec2-user/docker-compose.yaml
+        curl -L https://raw.githubusercontent.com/Full-remote-2022/back/main/mongo-init.js -o /home/ec2-user/mongo-init.js
         echo "Downloaded docker-compose.yaml" >> $LOG_FILE
 
         DB_ROOT_PWD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32 ; echo '')
