@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User, UserDocument } from "./users.model";
@@ -10,6 +10,10 @@ export class UsersService {
   ) {}
 
   async createUser(username: string, password: string): Promise<User> {
+    const exists = await this.userModel.exists({ username }).exec();
+    if (exists) {
+      throw new ForbiddenException("User already exists");
+    }
     return this.userModel.create({
       username,
       password,
