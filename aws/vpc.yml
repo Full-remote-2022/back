@@ -117,14 +117,16 @@ Resources:
         systemctl enable --now docker
         echo "Docker service enabled and started" >> $LOG_FILE
 
-        curl -L https://github.com/Full-remote-2022/back/blob/main/docker-compose.yaml -o /home/ec2-user/docker-compose.yaml
+        curl -L https://raw.githubusercontent.com/Full-remote-2022/back/main/docker-compose.yaml -o /home/ec2-user/docker-compose.yaml
         echo "Downloaded docker-compose.yaml" >> $LOG_FILE
 
-        DB_ROOT_PWD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '')
-        DB_APP_PWD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '')
-        JWT_TOKEN=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 13 ; echo '')
+        DB_ROOT_PWD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32 ; echo '')
+        DB_APP_PWD=$(tr -dc A-Za-z0-9 </dev/urandom  | head -c 32 ; echo '')
+        JWT_TOKEN=$(tr -dc A-Za-z0-9 </dev/urandom   | head -c 32 ; echo '')
 
         tee /home/ec2-user/.env <<EOF
+        MONGO_DB_NAME=fullremote
+
         MONGO_APP_USER=fullremote
         MONGO_APP_PWD=$DB_APP_PWD
 
@@ -134,7 +136,7 @@ Resources:
         APP_JWT_SECRET=$JWT_TOKEN
         EOF
 
-        docker-compose up -f /home/ec2-user/docker-compose.yml
+        docker-compose up -d -f /home/ec2-user/docker-compose.yml
 
 Outputs:
   VpcId:

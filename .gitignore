@@ -36,3 +36,4 @@ lerna-debug.log*
 
 # sensitive data
 .env
+/aws/stack_arn.txt
