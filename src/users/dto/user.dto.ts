@@ -2,8 +2,6 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Schema } from "mongoose";
 
 export class UserDto {
-  @ApiProperty()
-  readonly id: Schema.Types.ObjectId;
-  @ApiProperty()
+  readonly _id: string;
   readonly username: string;
 }

@@ -8,7 +8,7 @@ import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
 
 import config from "./config/configuration";
-import { SwaggerModule } from "@nestjs/swagger";
+import { ThemesModule } from "./themes/themes.module";
 
 @Module({
   imports: [
@@ -26,6 +26,7 @@ import { SwaggerModule } from "@nestjs/swagger";
     }),
     UsersModule,
     AuthModule,
+    ThemesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -21,7 +21,7 @@ export class UsersController {
     const user = await this.usersService.getUser(username);
     return {
       username: user.username,
-      id: user.id,
+      _id: user._id,
     };
   }
 
@@ -37,7 +37,7 @@ export class UsersController {
     );
     return {
       username: result.username,
-      id: result.id,
+      _id: result._id,
     };
   }
 }

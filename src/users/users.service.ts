@@ -5,7 +5,6 @@ import {
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { UserDto } from "./dto/user.dto";
 import { User, UserDocument } from "./users.model";
 
 @Injectable()
@@ -14,7 +13,7 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async createUser(username: string, password: string): Promise<UserDocument> {
+  async createUser(username: string, password: string): Promise<User> {
     const exists = await this.userModel.exists({ username }).exec();
     if (exists) {
       throw new ForbiddenException("User already exists");
@@ -26,7 +25,7 @@ export class UsersService {
     return user;
   }
 
-  async getUser(username: string): Promise<UserDocument | null> {
+  async getUser(username: string): Promise<User | null> {
     const user = await this.userModel.findOne({ username }).exec();
     if (user === null) {
       throw new NotFoundException("User not found");

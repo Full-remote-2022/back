@@ -12,6 +12,7 @@ async function bootstrap() {
     .setTitle("Full-remote API")
     .setDescription("API for #NuitDeLInfo")
     .setVersion("1.0")
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
