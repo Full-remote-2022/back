@@ -5,13 +5,13 @@ import { UsersService } from "./users.service";
 import { User } from "./users.model";
 import { CreateUserDto } from "./dto/create-user.dto";
 
-@Controller("auth")
+@Controller("user")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get(":username")
   async getUser(@Param("username") username: string): Promise<User> {
-    return this.usersService.getUser({ username });
+    return this.usersService.getUser(username);
   }
 
   @Post("signup")
