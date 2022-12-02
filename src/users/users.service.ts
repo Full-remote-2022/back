@@ -16,7 +16,7 @@ export class UsersService {
     });
   }
 
-  async getUser(username: string): Promise<User> {
+  async getUser(username: string): Promise<User | null> {
     return this.userModel.findOne({ username }).exec();
   }
 }

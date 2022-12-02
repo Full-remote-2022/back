@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+} from "@nestjs/common";
 import * as bcrypt from "bcrypt";
 
 import { UsersService } from "./users.service";
@@ -11,7 +18,11 @@ export class UsersController {
 
   @Get(":username")
   async getUser(@Param("username") username: string): Promise<User> {
-    return this.usersService.getUser(username);
+    const user = await this.usersService.getUser(username);
+    if (user === null) {
+      throw new NotFoundException("User not found");
+    }
+    return user;
   }
 
   @Post("signup")
