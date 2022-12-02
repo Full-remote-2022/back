@@ -19,11 +19,9 @@ export class UsersController {
   @Get(":username")
   async getUser(@Param("username") username: string): Promise<UserDto> {
     const user = await this.usersService.getUser(username);
-    if (user === null) {
-      throw new NotFoundException("User not found");
-    }
     return {
       username: user.username,
+      id: user.id,
     };
   }
 
@@ -37,6 +35,9 @@ export class UsersController {
       user.username,
       hashedPassword,
     );
-    return result;
+    return {
+      username: result.username,
+      id: result.id,
+    };
   }
 }

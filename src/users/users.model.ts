@@ -3,7 +3,7 @@ import { HydratedDocument } from "mongoose";
 
 export type UserDocument = HydratedDocument<User>;
 
-@Schema({ virtuals: true })
+@Schema()
 export class User {
   @Prop()
   username: string;
